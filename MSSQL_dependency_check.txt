@@ -1,0 +1,7 @@
+The following Transact-SQL can be utilized for finding object dependencies:
+
+SELECT * FROM sys.sql_expression_dependencies  
+WHERE referenced_id = OBJECT_ID(N'Production.Product');   
+
+Following link provides additional detail
+https://docs.microsoft.com/en-us/sql/relational-databases/tables/view-the-dependencies-of-a-table?view=sql-server-ver15
