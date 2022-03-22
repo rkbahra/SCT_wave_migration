@@ -1,0 +1,32 @@
+DB2 LUW analysis queries.
+
+Table based dependencies.  **Note the use of <TABLE_SCHEMA>, please replace with appropriate schema.
+
+WITH leaf_children (leaf_child)      AS (SELECT tabname          FROM   syscat.tables          WHERE  tabschema = '<TABLE_SCHEMA>'                 AND parents > 0                 AND children = 0),      refs (parentschema, parent, childschema, child, levels)      AS ((SELECT reftabschema,                  reftabname,                  tabschema,                  tabname,                  4           FROM   syscat.references,                  leaf_children           WHERE  tabschema = '<TABLE_SCHEMA>'                  AND tabname = leaf_child)          UNION ALL          (SELECT reftabschema,                  reftabname,                  tabschema,                  tabname,                  levels - 1           FROM   refs r,                  syscat.references s           WHERE  s.tabschema = r.parentschema                  AND s.tabname = r.parent                  AND r.levels > 0)) SELECT DISTINCT Substr(r.parent, 1, 20)   AS                                                     parent,                 '>>> '                 || Substr(r.child, 1, 20) AS child,                 levels FROM   refs r,        (SELECT parent,                Min(levels) AS level         FROM   refs         GROUP  BY parent) AS p WHERE  r.parent = p.parent        AND r.levels = p.level UNION SELECT Substr(leaf_child, 1, 20),        ' ',        (SELECT Max(levels)         FROM   refs)        + 1 FROM   leaf_children ORDER  BY 3; 
+
+
+Table level dependencies for non-storage objects.  **Please replace <TABLE_SCHEMA> and <TABLE_NAME> as appropriate.
+
+WITH d1 (tabschema, tabname, dtype, bschema, bname)
+     AS (SELECT tabschema,
+                tabname,
+                dtype,
+                bschema,
+                bname
+         FROM   syscat.tabdep
+         WHERE  bschema = '<TABLE_SCHEMA>'
+                AND bname = '<TABLE_NAME>'
+         UNION ALL
+         SELECT d2.tabschema,
+                d2.tabname,
+                d2.dtype,
+                d2.bschema,
+                d2.bname
+         FROM   d1,
+                syscat.tabdep d2
+         WHERE  d2.bschema = d1.tabschema
+                AND d2.bname = d1.tabname)
+SELECT *
+FROM   d1
+WITH UR; 
+
