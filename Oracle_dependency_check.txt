@@ -1,0 +1,6 @@
+select * from dba_dependencies where referenced_owner = '&USER_NAME' and referenced_name = '&OBJECT_NAME';
+
+-- Please review the following link for additional details:
+
+-- https://docs.oracle.com/cd/B19306_01/server.102/b14237/statviews_3088.htm
+-- https://docs.oracle.com/cd/B19306_01/server.102/b14237/statviews_1041.htm#i1576452
